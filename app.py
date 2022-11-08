@@ -1,5 +1,8 @@
 from flask import Flask, render_template, request, jsonify
-import pandas as pd, sklearn, matplotlib.pyplot as plt, numpy
+import pandas as pd
+import sklearn
+import matplotlib.pyplot as plt
+import numpy
 import numpy as np
 from sklearn.cluster import KMeans
 import jsonpickle
@@ -7,11 +10,14 @@ import func
 
 app = Flask(__name__)
 # ==================Coba coba di Jinjaaaaah==================
-#rendering the template
+# rendering the template
+
+
 @app.route("/")
 def index():
     option = func.get_products()
     return render_template("index.html", option=option)
+
 
 @app.route("/process")
 def process():
@@ -19,11 +25,12 @@ def process():
     total = func.total(data['item'])
     qty = func.get_qty(data['item'])
     status = func.get_status(data['item'])
-    result = {  'status': status,
-                'qty': qty[0],
-                'total': total[0]}
+    result = {'status': status,
+              'qty': qty[0],
+              'total': total[0]}
     return jsonify(result)
 # ====================End of Jinjaaaaah=====================
+
 
 df = pd.read_csv("Week09.csv")
 
@@ -45,47 +52,56 @@ clf = KMeans(n_clusters=3, random_state=0).fit(df2_no_label)
 # ============================FOR REACT====================================
 # API endpoint
 @app.route("/products")
-def get_products():    
+def get_products():
     return df2['Item'].tolist()
 
-#get endpoint
+# get endpoint
+
+
 @app.route("/clusters")
-def get_all_clusters():    
-    return {"clusters":clf.cluster_centers_.tolist()}
+def get_all_clusters():
+    return {"clusters": clf.cluster_centers_.tolist()}
+
 
 @app.route("/total")
 def total():
     args = request.args
-    produk = args.get('produk')    
-    return {"qty":list(df2.loc[df2['Item'] == produk]['Total'])}
+    produk = args.get('produk')
+    return {"qty": list(df2.loc[df2['Item'] == produk]['Total'])}
+
 
 @app.route("/qty")
-def get_qty():    
+def get_qty():
     args = request.args
-    produk = args.get('produk')    
+    produk = args.get('produk')
     return {"qty": list(df2.loc[df2['Item'] == produk]['Qty'])}
 
+
 @app.route("/cluster")
-def get_cluster():    
+def get_cluster():
     args = request.args
-    produk = args.get('produk')    
+    produk = args.get('produk')
     labels = clf.fit_predict(df2_no_label)
-    print(clf.cluster_centers_[labels[df2.loc[df2['Item'] == produk].index.values.astype(int)[0]]])
-    return {"cluster":list(clf.cluster_centers_[labels[df2.loc[df2['Item'] == produk].index.values.astype(int)[0]]])}
+    print(clf.cluster_centers_[
+          labels[df2.loc[df2['Item'] == produk].index.values.astype(int)[0]]])
+    return {"cluster": list(clf.cluster_centers_[labels[df2.loc[df2['Item'] == produk].index.values.astype(int)[0]]])}
+
 
 @app.route("/status")
-def get_status():    
+def get_status():
     args = request.args
-    produk = args.get('produk')   
+    produk = args.get('produk')
     labels = clf.fit_predict(df2_no_label)
-    cluster = labels[df2.loc[df2['Item'] == produk].index.values.astype(int)[0]]
+    cluster = labels[df2.loc[df2['Item'] == produk].index.values.astype(int)[
+        0]]
     match cluster:
         case 0:
-            return {"status":"Average"}
+            return {"status": "Average"}
         case 1:
-            return {"status":"Low"}
-        case 2: 
-            return {"status":"High"}
+            return {"status": "Low"}
+        case 2:
+            return {"status": "High"}
+
 
 if __name__ == "__main__":
-    app.run(debug = True)
+    app.run(debug=True)
